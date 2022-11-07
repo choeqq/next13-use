@@ -8,15 +8,20 @@ interface Pokemon {
   image?: string;
 }
 
-const fetchMap = new Map<string, Promise<any>>();
-function queryClient<QueryResult>(
-  name: string,
-  query: () => Promise<QueryResult>
-): Promise<QueryResult> {
-  if (!fetchMap.has(name)) fetchMap.set(name, query());
-
-  return fetchMap.get(name)!;
+function createQueryClient() {
+  const fetchMap = new Map<string, Promise<any>>();
+  return function queryClient<QueryResult>(
+    name: string,
+    query: () => Promise<QueryResult>
+  ): Promise<QueryResult> {
+    if (!fetchMap.has(name)) {
+      fetchMap.set(name, query());
+    }
+    return fetchMap.get(name)!;
+  };
 }
+
+const queryClient = createQueryClient();
 
 export default function Home() {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon>();
@@ -28,7 +33,7 @@ export default function Home() {
 
   const pokemonDetail = selectedPokemon
     ? use(
-        queryClient<Pokemon[]>(["pokemon", selectedPokemon.id].join("-"), () =>
+        queryClient<Pokemon>(["pokemon", selectedPokemon.id].join("-"), () =>
           fetch(`http://localhost:3000/api/${selectedPokemon.id}`).then((res) =>
             res.json()
           )
