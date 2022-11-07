@@ -1,6 +1,11 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
+
+interface Pokemon {
+  id: number;
+  name: string;
+}
 
 const fetchMap = new Map<string, Promise<any>>();
 function queryClient<QueryResult>(
@@ -13,17 +18,31 @@ function queryClient<QueryResult>(
 }
 
 export default function Home() {
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon>();
   const pokemons = use(
-    queryClient<{ id: number; name: string }[]>("pokemon", () =>
+    queryClient<Pokemon[]>("pokemon", () =>
       fetch("http://localhost:3000/api/pokemon").then((res) => res.json())
     )
   );
 
+  const pokemonDetail = selectedPokemon
+    ? use(
+        queryClient<Pokemon[]>(["pokemon", selectedPokemon.id].join("-"), () =>
+          fetch(`http://localhost:3000/api/${selectedPokemon.id}`).then((res) =>
+            res.json()
+          )
+        )
+      )
+    : null;
+
   return (
     <div>
       {pokemons.map((p) => (
-        <button key={p.id}>{p.name}</button>
+        <button key={p.id} onClick={() => setSelectedPokemon(p)}>
+          {p.name}
+        </button>
       ))}
+      <div>{JSON.stringify(pokemonDetail)}</div>
     </div>
   );
 }
