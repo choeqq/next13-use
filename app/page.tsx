@@ -5,6 +5,7 @@ import { use, useState } from "react";
 interface Pokemon {
   id: number;
   name: string;
+  image?: string;
 }
 
 const fetchMap = new Map<string, Promise<any>>();
@@ -42,7 +43,7 @@ export default function Home() {
           {p.name}
         </button>
       ))}
-      <div>{JSON.stringify(pokemonDetail)}</div>
+      <div>{pokemonDetail && <img src={pokemonDetail.image} />}</div>
     </div>
   );
 }
