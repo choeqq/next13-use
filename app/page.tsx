@@ -2,15 +2,19 @@
 
 import { use } from "react";
 
-async function fetchData() {
-  const res = await fetch("http://localhost:3000/api/hello");
-  return res.json();
+const fetchMap = new Map<string, Promise<any>>();
+function queryClient(name: string, query: () => Promise<any>) {
+  if (!fetchMap.has(name)) fetchMap.set(name, query());
+
+  return fetchMap.get(name)!;
 }
 
-const dataPromise = fetchData();
-
 export default function Home() {
-  const data = use(dataPromise);
+  const data = use(
+    queryClient("hello", () =>
+      fetch("http://localhost:3000/api/hello").then((res) => res.json())
+    )
+  );
 
   return <div>{JSON.stringify(data, null, 2)}</div>;
 }
